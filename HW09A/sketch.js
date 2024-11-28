@@ -1,8 +1,4 @@
-
-// original image, to use as reference for pixel colors
 let oImg;
-
-// display image, to modify and display on canvas
 let mImg;
 
 function preload() {
@@ -14,24 +10,75 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   oImg.resize(0, height);
   mImg.resize(0, height);
-
-  // we'll read pixel color info from the oImg, so let's load its pixels
   oImg.loadPixels();
-
-  // TODO: setup sliders and other DOM/html elements here
+  createSliders();
 }
 
 function draw() {
-  // we'll modify and display the mImg object, so let's load its pixels
   mImg.loadPixels();
 
-  // TODO: do any filtering and pixel modifications here.
-  //       This involves a for loop of some kind.
-  //       Remember to read from the oImg pixels and write to the mImg.
+  for (let y = 0; y < oImg.height; y++) {
+    for (let x = 0; x < oImg.width; x++) {
+      let index = (x + y * oImg.width) * 4;
+      let r = oImg.pixels[index];
+      let g = oImg.pixels[index + 1];
+      let b = oImg.pixels[index + 2];
 
-  // we'll display the updated mImg, so let's update its pixels
+      if (r > 200 && g < 100 && b < 100) {
+        mImg.pixels[index] = 255;
+        mImg.pixels[index + 1] = 0;
+        mImg.pixels[index + 2] = 128;
+      } else if (r < 100 && g > 200 && b < 100) {
+        mImg.pixels[index] = 0;
+        mImg.pixels[index + 1] = 255;
+        mImg.pixels[index + 2] = 128;
+      } else if (r < 100 && g < 100 && b > 200) {
+        mImg.pixels[index] = 0;
+        mImg.pixels[index + 1] = 128;
+        mImg.pixels[index + 2] = 255;
+      } else if (r > 200 && g > 200 && b < 100) {
+        mImg.pixels[index] = 255;
+        mImg.pixels[index + 1] = 255;
+        mImg.pixels[index + 2] = 0;
+      } else if (r < 50 && g < 50 && b < 50) {
+        mImg.pixels[index] = 0;
+        mImg.pixels[index + 1] = 0;
+        mImg.pixels[index + 2] = 0;
+      } else {
+        mImg.pixels[index] = 192;
+        mImg.pixels[index + 1] = 0;
+        mImg.pixels[index + 2] = 192;
+      }
+
+      mImg.pixels[index + 3] = oImg.pixels[index + 3];
+    }
+  }
+
   mImg.updatePixels();
-
-  // draw the display image
+  drawBackground();
   image(mImg, 0, 0);
+}
+
+function createSliders() {
+  let brightnessSlider = createSlider(0, 255, 128);
+  brightnessSlider.input(() => adjustBrightness(brightnessSlider.value()));
+}
+
+function adjustBrightness(value) {
+  mImg.loadPixels();
+  for (let i = 0; i < mImg.pixels.length; i += 4) {
+    mImg.pixels[i] = constrain(mImg.pixels[i] + value, 0, 255);
+    mImg.pixels[i + 1] = constrain(mImg.pixels[i + 1] + value, 0, 255);
+    mImg.pixels[i + 2] = constrain(mImg.pixels[i + 2] + value, 0, 255);
+  }
+  mImg.updatePixels();
+}
+
+function drawBackground() {
+  for (let y = 0; y < height; y++) {
+    let inter = map(y, 0, height, 0, 1);
+    let c = lerpColor(color(40, 0, 50), color(80, 0, 120), inter);
+    stroke(c);
+    line(0, y, width, y);
+  }
 }
